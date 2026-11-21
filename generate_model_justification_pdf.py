@@ -3,7 +3,7 @@ import os
 import subprocess
 import pathlib
 
-BASE_DIR = r"C:\Users\alvarium\.gemini\antigravity\scratch\PFA_VIRALE"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PLOTS_DIR = os.path.join(BASE_DIR, "eda_plots")
 
 def get_b64(filename):
