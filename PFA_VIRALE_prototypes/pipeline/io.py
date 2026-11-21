@@ -53,6 +53,44 @@ def load_events(data_dir: str, max_files: int | None = None) -> pd.DataFrame:
     return _read_folder(os.path.join(data_dir, "raw"), max_files=max_files, columns=EVENT_COLS)
 
 
+def load_events_streaming(data_dir: str, max_files: int | None = None, max_posts: int | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Charge les posts et leurs engagements de manière économe en RAM sur de très gros volumes (ex: 5 jours / 55M d'événements)."""
+    raw_folder = os.path.join(data_dir, "raw")
+    files = sorted(glob.glob(os.path.join(raw_folder, "**", "*.parquet"), recursive=True))
+    if not files:
+        files = sorted(glob.glob(os.path.join(raw_folder, "**", "*.csv"), recursive=True))
+    if not files:
+        raise FileNotFoundError(f"Aucun fichier .parquet ou .csv sous {raw_folder}")
+    if max_files is not None and max_files > 0:
+        files = files[:max_files]
+
+    if files and files[0].endswith(".parquet") and has_pyarrow():
+        import pyarrow.dataset as ds
+        dataset = ds.dataset(files, format="parquet")
+        post_cols = [c for c in EVENT_COLS if c in dataset.schema.names]
+        table_posts = dataset.to_table(filter=ds.field("kind") == "post", columns=post_cols)
+        posts = table_posts.to_pandas()
+        del table_posts
+        if max_posts is not None and len(posts) > max_posts:
+            step = max(1, len(posts) // max_posts)
+            posts = posts.iloc[::step].iloc[:max_posts].reset_index(drop=True)
+
+        eng_cols = [c for c in ["time_us", "kind", "author_hash", "post_id"] if c in dataset.schema.names]
+        table_eng = dataset.to_table(filter=ds.field("kind") != "post", columns=eng_cols)
+        eng = table_eng.to_pandas()
+        del table_eng
+        eng = eng[eng["post_id"].isin(set(posts["post_id"]))].reset_index(drop=True)
+        return posts, eng
+
+    events = load_events(data_dir, max_files=max_files)
+    posts = events[events["kind"] == "post"].reset_index(drop=True)
+    if max_posts is not None and len(posts) > max_posts:
+        step = max(1, len(posts) // max_posts)
+        posts = posts.iloc[::step].iloc[:max_posts].reset_index(drop=True)
+    eng = events[events["kind"] != "post"][["time_us", "kind", "author_hash", "post_id"]].reset_index(drop=True)
+    return posts, eng
+
+
 def load_authors(data_dir: str, max_files: int | None = None) -> pd.DataFrame:
     """Profils d'auteurs (abonnés...). Vide si l'enrichissement était désactivé."""
     try:

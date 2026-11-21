@@ -1,0 +1,64 @@
+{
+  "args": {
+    "data_dir": "data",
+    "synthetic": false,
+    "out": "PFA_VIRALE_prototypes/outputs_5days",
+    "seed": 42,
+    "emb_backend": "auto",
+    "min_cluster_size": 10,
+    "min_samples": 5,
+    "min_posts": 1,
+    "test_start_day": 3.2,
+    "max_files": null,
+    "max_posts": 30000,
+    "viral_quantile": 0.8,
+    "embargo_h": 6.0,
+    "n_topics": 800,
+    "days": 14,
+    "n_boot": 500,
+    "oracle_topics": false
+  },
+  "clean": {
+    "rows_in": 427614,
+    "duplicates_removed": 1,
+    "short_posts_removed": 3072,
+    "author_text_duplicates_removed": 109,
+    "orphan_engagements_removed": 59150,
+    "engagements_before_post_removed": 0,
+    "posts": 26818,
+    "likes": 286914,
+    "reposts": 51550,
+    "rows_out": 365282
+  },
+  "source": "data",
+  "embedding_backend": "hash+random-projection (repli : sbert indisponible, ModuleNotFoundError)",
+  "topics": {
+    "mode": "hdbscan",
+    "n_topics": 192,
+    "noise_share": 0.7560593631143262
+  },
+  "features": {
+    "topics_with_enough_posts": 192,
+    "dropped_horizon_incomplete": 0
+  },
+  "split": {
+    "fit": 22,
+    "val": 14,
+    "test": 58,
+    "viral_threshold_n6h": 4.0,
+    "quantile_used": 0.7,
+    "positives": {
+      "fit": 9,
+      "val": 2,
+      "test": 12
+    }
+  },
+  "M1_vs_B1_pr_auc_diff": {
+    "diff": -0.12001341607233668,
+    "ci95": [
+      -0.36820592258682144,
+      0.16977749878487103
+    ]
+  },
+  "seconds_total": 281.9
+}

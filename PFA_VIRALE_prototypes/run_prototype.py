@@ -88,21 +88,26 @@ def main() -> None:
         from pipeline.synthetic import generate
         events, authors, truth = generate(n_topics=args.n_topics, days=args.days, seed=args.seed)
         rep["source"] = "synthétique (aucune conclusion scientifique)"
+        print(f"[1] chargé : {len(events):,} événements, {len(authors):,} profils")
+        clean, rep["clean"] = clean_events(events)
+        print(f"[2] nettoyé : {rep['clean']}")
+        posts = clean[clean["kind"] == "post"].reset_index(drop=True)
+        if args.max_posts is not None and len(posts) > args.max_posts:
+            step = max(1, len(posts) // args.max_posts)
+            posts = posts.iloc[::step].iloc[:args.max_posts].reset_index(drop=True)
+            print(f"[2b] échantillon posts : {len(posts):,} posts répartis uniformément dans le temps (sur {rep['clean']['posts']:,})")
+        eng = clean[clean["kind"] != "post"][["time_us", "kind", "author_hash", "post_id"]]
+        data_start, data_end = int(clean["time_us"].min()), int(clean["time_us"].max())
     else:
-        events, authors = pio.load_events(args.data_dir, max_files=args.max_files), pio.load_authors(args.data_dir, max_files=args.max_files)
+        from pipeline.clean import clean_posts_and_eng
+        posts_raw, eng_raw = pio.load_events_streaming(args.data_dir, max_files=args.max_files, max_posts=args.max_posts)
+        authors = pio.load_authors(args.data_dir, max_files=args.max_files)
+        posts, eng, rep["clean"] = clean_posts_and_eng(posts_raw, eng_raw)
+        data_start, data_end = int(posts["time_us"].min()), int(posts["time_us"].max())
         rep["source"] = args.data_dir
-    print(f"[1] chargé : {len(events):,} événements, {len(authors):,} profils")
-
-    # 2. nettoyage ----------------------------------------------------------------------------
-    clean, rep["clean"] = clean_events(events)
-    print(f"[2] nettoyé : {rep['clean']}")
-    posts = clean[clean["kind"] == "post"].reset_index(drop=True)
-    if args.max_posts is not None and len(posts) > args.max_posts:
-        step = max(1, len(posts) // args.max_posts)
-        posts = posts.iloc[::step].iloc[:args.max_posts].reset_index(drop=True)
-        print(f"[2b] échantillon posts : {len(posts):,} posts répartis uniformément dans le temps (sur {rep['clean']['posts']:,})")
-    eng = clean[clean["kind"] != "post"][["time_us", "kind", "author_hash", "post_id"]]
-    data_start, data_end = int(clean["time_us"].min()), int(clean["time_us"].max())
+        span_h = (data_end - data_start) / 1e6 / 3600
+        print(f"[1] chargé & nettoyé : {len(posts):,} posts réels, {len(eng):,} engagements, {len(authors):,} profils")
+        print(f"[2] couverture temporelle : {span_h:.1f} heures ({span_h/24:.2f} jours)")
 
     # 3. plongements + sujets -----------------------------------------------------------------
     t = time.time()
