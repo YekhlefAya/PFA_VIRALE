@@ -1,0 +1,62 @@
+{
+  "args": {
+    "data_dir": null,
+    "synthetic": true,
+    "out": "/tmp/out_oracle",
+    "seed": 42,
+    "emb_backend": "auto",
+    "min_cluster_size": 15,
+    "min_samples": 25,
+    "min_posts": 8,
+    "test_start_day": 7.0,
+    "viral_quantile": 0.9,
+    "n_topics": 1500,
+    "days": 14,
+    "n_boot": 300,
+    "oracle_topics": true
+  },
+  "source": "synthétique (aucune conclusion scientifique)",
+  "clean": {
+    "rows_in": 304615,
+    "invalid_rows": 0,
+    "duplicates_removed": 0,
+    "short_posts_removed": 0,
+    "author_text_duplicates_removed": 0,
+    "orphan_engagements_removed": 0,
+    "engagements_before_post_removed": 0,
+    "rows_out": 304615,
+    "posts": 112090,
+    "likes": 163152,
+    "reposts": 29373
+  },
+  "embedding_backend": "hash+random-projection (repli : sbert indisponible, ModuleNotFoundError)",
+  "topics": {
+    "mode": "oracle (vrais sujets, pas de clustering)",
+    "n_topics": 1500,
+    "noise_share": 0.13043090373806762,
+    "adjusted_rand_vs_truth": 1.0
+  },
+  "features": {
+    "topics_with_enough_posts": 650,
+    "dropped_horizon_incomplete": 0
+  },
+  "split": {
+    "fit": 236,
+    "val": 84,
+    "test": 302,
+    "viral_threshold_n6h": 188.0,
+    "positives": {
+      "fit": 24,
+      "val": 7,
+      "test": 32
+    }
+  },
+  "M1_vs_B1_pr_auc_diff": {
+    "diff": 0.20660435929653886,
+    "ci95": [
+      0.07768634466108917,
+      0.37212940668551164
+    ]
+  },
+  "seconds_total": 19.3
+}
