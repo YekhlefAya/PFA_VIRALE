@@ -1,0 +1,48 @@
+x-logging: &log
+  driver: json-file
+  options: {max-size: "10m", max-file: "3"}
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # Tampon plafonné : 350 Mo de mémoire maximum (adapté pour VPS 1 Go RAM), persistance sur disque (AOF)
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec",
+              "--maxmemory", "350mb", "--maxmemory-policy", "noeviction"]
+    volumes: [redisdata:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+    logging: *log
+
+  collector:
+    build: .
+    command: ["python", "-u", "collector.py"]
+    restart: unless-stopped
+    depends_on:
+      redis: {condition: service_healthy}
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      PSEUDO_SALT: ${PSEUDO_SALT:?Définis PSEUDO_SALT dans le fichier .env}
+      LANGS: fr,en
+      TRACK_HOURS: "12"
+      ENRICH: "1"
+    logging: *log
+
+  archiver:
+    build: .
+    command: ["python", "-u", "archiver.py"]
+    restart: unless-stopped
+    stop_grace_period: 30s
+    depends_on:
+      redis: {condition: service_healthy}
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      DATA_DIR: /data
+      FLUSH_SECONDS: "300"
+    volumes: ["./data:/data"]
+    logging: *log
+
+volumes:
+  redisdata:
