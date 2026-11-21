@@ -1,8 +1,8 @@
-# Prototypes pipeline + modèles — PFA « Prédiction de la viralité sur Bluesky »
+# Pipeline ML — Prédiction de la viralité et détection de tendances émergentes sur Bluesky (PFA EMSI)
 
-Prototypes des étapes de la feuille de route du jalon J3 (clean → embed → sujets → variables → modèles),
-conformes au CDC V2 (§ 9) : fenêtre d'observation 30 min, horizon 6 h, cible `N(T0+6h) ≥ q0,95`,
-découpage temporel avec embargo de 6 h, références B0–B2, modèles M1–M2, ablation, bootstrap.
+Pipeline modulaire de Machine Learning pour les jalons J3 & J4 (clean → embed → topics → features → models),
+conformes au CDC V2 (§ 9) : fenêtre d'observation 30 min, horizon 6 h, cible `N(T0+6h) ≥ seuil`,
+découpage temporel avec embargo de 6 h, références B0–B2, modèles natifs M1 (XGBoost) et M2 (LightGBM), ablation, bootstrap.
 
 ```
 pipeline/   io.py · clean.py · embed.py · topics.py · features.py · labels.py · synthetic.py
